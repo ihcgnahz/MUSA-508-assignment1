@@ -332,8 +332,8 @@ ggplot(allTracts.group)+
   geom_sf(data = st_union(Tracts.2009))+
   geom_sf(data = st_union(Tracts.2018))+
   geom_sf(aes(fill = q5(TotalPop))) +
-  geom_sf(data = metroBuffers_2018, fill = "transparent", color = "red") +
-  geom_sf(data = metroBuffers_2009, fill = "transparent", color = "blue")+
+  geom_sf(data = buffer_2018, fill = "transparent", color = "red") +
+  geom_sf(data = buffer_2009, fill = "transparent", color = "blue")+
   scale_fill_manual(values = palette5,
                     labels = qBr(allTracts.group, "TotalPop"),
                     name = "Population\n(Quintile Breaks)") +
