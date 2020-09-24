@@ -2,6 +2,8 @@
 MUSA 508: Public Policy Analytics
 Author: Chi Zhang, Zhijie Zhou
 
+This assignment investigated Transit Oriented Development (TOD) potential in Los Angeles City, CA, through the analysis of space/time indicators wrangled from Census data with respect to LA Metro stations. We selected Population, Median Rent, Percent of Bachelor, and Percent of Poverty of the census tracts within 0.5 mile of each Metro stations in 2009 and 2018 as TOD indicators for comparison purpose. Besides, we also visualized the spatial patterns of rape crime incidents with stations and median rent data respectively. Here is a table of contents.
+
 [toc]
 
 #### 1. Introduction
