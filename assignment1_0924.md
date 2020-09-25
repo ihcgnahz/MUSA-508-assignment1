@@ -337,14 +337,16 @@ ggplot(allTracts.group)+
   scale_fill_manual(values = palette5,
                     labels = qBr(allTracts.group, "TotalPop"),
                     name = "Population\n(Quintile Breaks)") +
-  labs(title = "Total Population 2009-2018", subtitle = "Counts of People") +
+  labs(title = "Total Population 2009-2018", 
+       subtitle = "Counts of People; Blue border denotes area close to metro stations in 2009, the red represents area close to new stations", 
+       caption = "Figure 1.1: TOD Indicators - Total Population") +
   facet_wrap(~year)+
   mapTheme() + 
   theme(plot.title = element_text(size=22))
+
 ```
 
 ![image-20200924125422495](C:\Users\Alumix\AppData\Roaming\Typora\typora-user-images\image-20200924125422495.png)
-
 
 
 ```r
@@ -358,7 +360,9 @@ ggplot(allTracts.group)+
   scale_fill_manual(values = palette5,
                     labels = qBr(allTracts.group, "MedRent"),
                     name = "Rent\n(Quintile Breaks)") +
-  labs(title = "Median Rent 2009-2018", subtitle = "Real Dollars") +
+  labs(title = "Median Rent 2009-2018", 
+       subtitle = "Real Dollars, Blue border denotes area close to metro stations in 2009, the red represents area close to new stations",
+       caption = "Figure 1.2: TOD Indicators - Median Rent") +
   facet_wrap(~year)+
   mapTheme() + 
   theme(plot.title = element_text(size=22))
@@ -375,7 +379,7 @@ allTracts.group.visual <-
   rbind(Tracts.2009,Tracts.2018)%>%
   mutate(MedRent.inf = ifelse(year == "2009", MedRent * 1.17, MedRent))%>%
   mutate(pctPoverty = pctPoverty * 100) %>%
-  mutate(pctBachelors = pctBachelors * 1000)
+  mutate(pctBachelors = pctBachelors * 10000)
 
 # Poverty
 ggplot(allTracts.group)+
@@ -385,9 +389,11 @@ ggplot(allTracts.group)+
   geom_sf(data = buffer_2018, fill = "transparent", color = "red") +
   geom_sf(data = buffer_2009, fill = "transparent", color = "blue")+
   scale_fill_manual(values = palette5,
-                    labels = qBr(allTracts.group.visual, "pctPoverty"),
+                    labels = qBr(allTracts.group, "pctPoverty"),
                     name = "Percent_Poverty\n(Quintile Breaks)") +
-  labs(title = "Percent of Poverty 2009-2018", subtitle = "Percentage(%)") +
+  labs(title = "Percent of Poverty 2009-2018", 
+       subtitle = "Percentage(%); Blue border denotes area close to metro stations in 2009, the red represents area close to new stations",
+       caption = "Figure 1.3: TOD Indicators - Percentage of Poverty") +
   facet_wrap(~year)+
   mapTheme() + 
   theme(plot.title = element_text(size=22))
@@ -398,7 +404,6 @@ ggplot(allTracts.group)+
 
 
 ```r
-# Bachelors
 ggplot(allTracts.group)+
   geom_sf(data = st_union(Tracts.2009))+
   geom_sf(data = st_union(Tracts.2018))+
@@ -406,9 +411,11 @@ ggplot(allTracts.group)+
   geom_sf(data = buffer_2018, fill = "transparent", color = "red") +
   geom_sf(data = buffer_2009, fill = "transparent", color = "blue")+
   scale_fill_manual(values = palette5,
-                    labels = qBr(allTracts.group.visual, "pctBachelors"),
-                    name = "Percent_Bachelors\n(Quintile Breaks)") +
-  labs(title = "Percent of Bachelor 2009-2018", subtitle = "10 times of the original Percentage(%)") +
+                    labels = qBr(allTracts.group, "pctBachelors"),
+                    name = "Bachelors Per 10K Population\n(Quintile Breaks)") +
+  labs(title = "Bachelors Per 10K Population 2009-2018", 
+       subtitle = "1/10000; Blue border denotes area close to metro stations in 2009, the red represents area close to new stations",
+       caption = "Figure 1.4: TOD Indicators - Bachelor Per 10K") +
   facet_wrap(~year)+
   mapTheme() + 
   theme(plot.title = element_text(size=22))
@@ -419,19 +426,19 @@ ggplot(allTracts.group)+
 ##### TOD Indicators Summary Table
 
 ```r
+
 allTracts.Summary <- 
   st_drop_geometry(allTracts.group) %>%
   group_by(year, TOD) %>%
   summarize(Rent = mean(MedRent, na.rm = T),
             Population = mean(TotalPop, na.rm = T),
-            #Percent_White = mean(pctWhite, na.rm = T),
-            Percent_Bachelors = mean(pctBachelors, na.rm = T),
-            Percent_Poverty = mean(pctPoverty, na.rm = T))
+            Percentage_Poverty = mean(pctPoverty*100, na.rm = T),
+            Bachelors_Per10K = mean(pctBachelors*10000, na.rm = T))
 
 kable(allTracts.Summary) %>%
   kable_styling() %>%
   footnote(general_title = "\n",
-           general = "TOD Summary Table: Los Angeles, 2009 versus 2018")
+           general = "Table 1: TOD Indicators Summary Table: Los Angeles, 2009 versus 2018")
 ```
 
 
@@ -446,7 +453,8 @@ allTracts.Summary %>%
   geom_bar(stat = "identity", position = "dodge") +
   facet_wrap(~Variable, scales = "free", ncol=5) +
   scale_fill_manual(values = c("#bae4bc", "#0868ac")) +
-  labs(title = "Indicator differences across time and space") +
+  labs(title = "TOD Indicator differences across time and space",
+       caption = "Figure 1.5: TOD Indicator Differences 2009 versus 2018") +
   plotTheme() + theme(legend.position="bottom")
 ```
 
@@ -661,5 +669,5 @@ ggplot(allTracts.group)+
 
 
 
-#### 6. Conclusion
+#### 6. Discussion
 
