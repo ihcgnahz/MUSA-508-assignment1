@@ -142,7 +142,8 @@ ggplot() +
 # --- Relating SEPTA Stops and Tracts ----
 #2009
 
-buffer_2009 <- filter(metroBuffers_2009, Legend=="Unioned Buffer 2009")
+buffer_2009 <- filter(metroBuffers_2009, Legend=="Unioned Buffer 2009")%>%
+  mutate(year='2009')
 
 Tracts.2009 <- 
   rbind(
@@ -177,17 +178,20 @@ ggplot(Tracts.2009)+
   labs(title = "Time/Space Groups") +
   theme(plot.title = element_text(size=22))
 
-ggplot(Tracts.2009)+
+ggplot(Tracts.2009.inf)+
   geom_sf(data = st_union(tracts09)) +
   geom_sf(aes(fill = q5(MedRent.inf))) +
   geom_sf(data = buffer_2009, fill = "transparent", color = "red")+
-  scale_fill_manual(values = palette5,labels = qBr(Tracts.2009, "MedRent.inf"),name = "Rent\n(Quintile Breaks)") +
+  scale_fill_manual(values = palette5,labels = qBr(Tracts.2009.inf, "MedRent.inf"),name = "Rent\n(Quintile Breaks)") +
   labs(title = "Median Rent 2009-2017", subtitle = "Real Dollars") +
   mapTheme() +
   theme(plot.title = element_text(size=22))
 
 #2018
-buffer_2018 <- filter(metroBuffers_2018, Legend=="Unioned Buffer 2018")
+buffer_2018 <- filter(metroBuffers_2018, Legend=="Unioned Buffer 2018")%>%
+  mutate(year='2018')
+
+buffer.group = rbind(buffer_2009,buffer_2018)
 
 Tracts.2018 <- 
   rbind(
@@ -267,7 +271,8 @@ ggplot() +
           fill = "red", alpha = 1, show.legend = "point") + 
   scale_size_continuous(range = c(0.5, 3))+
   facet_wrap(~Year)+mapTheme()+
-  labs(title = "Mean Medrent Within 0.5 Mile of Each Transit 2009-2018", subtitle = "Dollars")
+  labs(caption = "Data:US Cencus Bureau, City of Los Angeles Open Data") +
+  labs(title = "Mean of MedRent Within 0.5 Mile of Each Transit 2009-2018", subtitle = "Real Dollars")
 
 #Population
 buffer09 <- 
@@ -311,23 +316,23 @@ pop_sta_18<-
 pop_sta.group <- 
   rbind(pop_sta_09,pop_sta_18)
 
-
 ggplot() + 
   geom_sf(data = allTracts, fill="black")+
   geom_sf(data = st_centroid(pop_sta.group), aes(size = sumPop), shape = 21, 
           fill = "lightblue", alpha = 1, show.legend = "point") + 
   scale_size_continuous(range = c(0.5, 3))+
   facet_wrap(~Year)+mapTheme()+
-  labs(title = "Population Within 0.5 Mile of Each Transit 2009-2018", subtitle = "People")
+  labs(caption = "Data:US Cencus Bureau, City of Los Angeles Open Data") +
+  labs(title = "Population Within 0.5 Mile of Each Metro Station 2009-2018", subtitle = "Counts of People")
 
 # --- Multi-buffer Ring ----
 
 #multirings_2009
 multirings_2009 <-
-  st_join(st_centroid(dplyr::select(Tracts.2009, GEOID, year)), 
+  st_join(st_centroid(dplyr::select(Tracts.2009.inf, GEOID, year)), 
           multipleRingBuffer(st_union(station_2009), 16898.07, 804.67)) %>%
   st_drop_geometry() %>%
-  left_join(dplyr::select(Tracts.2009, GEOID, MedRent.inf, year), 
+  left_join(dplyr::select(Tracts.2009.inf, GEOID, MedRent.inf, year), 
             by=c("GEOID"="GEOID", "year"="year")) %>%
   st_sf() %>%
   mutate(distance = distance / 1609.34)
@@ -365,7 +370,8 @@ ggplot()+
   scale_colour_manual("",values = c("2009" = "#7bccc4","2018"="#43a2ca"))+
   xlab("Year")+ylab("dolloars")+
   plotTheme() + theme(legend.position="bottom")+
-  ggtitle("Rent as a function of distance to subway stations")
+  labs(caption = "Data:US Cencus Bureau, City of Los Angeles Open Data") +
+  ggtitle("Rent as a Function of Distance to Metro Stations",subtitle = "Real Dollars")
 
 # ---- Read Crime Open Data -----
 
@@ -377,32 +383,35 @@ crime18 <- st_read('F:\\MUSA\\MUSA-505\\assignment1\\crime_shp\\crime_2018.shp')
   select(Date_Rptd, Crm_Cd_Des) %>%
   st_transform(st_crs(tracts09))
 
-crime18_b <-crime18[(crime18$Crm_Cd_Des =="RAPE, FORCIBLE"),]
-crime09_b <-crime09[(crime09$Crm_Cd_Des =="RAPE, FORCIBLE"),]
+crime18_b <-crime18[(crime18$Crm_Cd_Des =="RAPE, FORCIBLE"),]%>%
+  mutate(year='2018')
 
+crime09_b <-crime09[(crime09$Crm_Cd_Des =="RAPE, FORCIBLE"),]%>%
+  mutate(year='2009')
 
+crime.group <- rbind(crime18_b,crime09_b)
 
 # ---- Read Crime Open Data -----
 
-ggplot(Tracts.2009)+
-  geom_sf(data = st_union(tracts09)) +
-  geom_sf(aes(fill = q5(MedRent.inf))) +
-  geom_sf(data = crime09_b,  color = "red",alpha=0.7)+
-  geom_sf(data = buffer_2018, fill = "transparent", color = "Red")+
-  geom_sf(data = buffer_2009, fill = "transparent", color = "Blue")+
+ggplot()+
+  geom_sf(data = allTracts, fill="black")+
+  geom_sf(data = crime.group,  color = "red",alpha=0.5)+
+  geom_sf(data = buffer.group, fill = "transparent", color = "white")+
   scale_fill_manual(values = palette5,labels = qBr(Tracts.2018, "MedRent"),name = "Rent\n(Quintile Breaks)") +
-  labs(title = "Median Rent 2009", subtitle = "Real Dollars") +
+  labs(title = "Crime and Metro Station Distribution 2009-2018", subtitle = "Forcible Rape") +
+  facet_wrap(~year)+
   mapTheme() +
+  labs(caption = "Data:US Cencus Bureau, City of Los Angeles Open Data") +
   theme(plot.title = element_text(size=22))
 
-ggplot(Tracts.2018)+
-  geom_sf(data = st_union(tracts18)) +
+ggplot(allTracts.group)+
+  geom_sf(data = st_union(tracts09))+
   geom_sf(aes(fill = q5(MedRent))) +
-  geom_sf(data = crime18_b,  color = "red",alpha=0.7)+
-  geom_sf(data = buffer_2018, fill = "transparent", color = "Red")+
-  geom_sf(data = buffer_2009, fill = "transparent", color = "Blue")+
-  scale_fill_manual(values = palette5,labels = qBr(Tracts.2018, "MedRent"),name = "Rent\n(Quintile Breaks)") +
-  labs(title = "Median Rent 2017", subtitle = "Real Dollars") +
+  geom_sf(data = crime.group,  color = "red",alpha=0.7)+
+  scale_fill_manual(values = palette5,labels = qBr(allTracts.group, "MedRent"),name = "Rent\n(Quintile Breaks)") +
+  labs(title = "Crime and Medium Rent Distribution 2009-2018", subtitle = "Forcible Rape") +
+  facet_wrap(~year)+
+  labs(caption = "Data:US Cencus Bureau, City of Los Angeles Open Data") +
   mapTheme() +
   theme(plot.title = element_text(size=22))
 
